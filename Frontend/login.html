@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,23 +12,19 @@
     <h2 class="auth-title">Login</h2>
 
     <form id="loginForm">
-      <input
-        type="text"
-        class="auth-input"
-        id="loginId"
-        placeholder="Email or Phone"
-        required
-      />
-
-      <input
-        type="password"
-        class="auth-input"
-        id="loginPassword"
-        placeholder="Password"
-        required
-      />
-
-      <button type="submit" class="auth-button">Login</button>
+         <p id="Msg" class="success"></p>
+  
+      <div class="form-group">
+        <input type="text" id="emailorphone" placeholder="Email or phone"   class="auth-input"/>
+        <small class="error" id="emailError"></small>
+      </div>
+      <div class="form-group">
+      
+        <input type="password" id="password"   placeholder="password" class="auth-input"/>
+        <small class="error" id="passwordError"></small>
+      
+      </div>
+      <button type="submit" class="auth-button" >Login</button>
     </form>
 
     <p class="auth-text">
@@ -36,6 +33,6 @@
     </p>
   </div>
 
-  <script src="js/auth.js"></script>
+  <script src="js/login.js"></script>
 </body>
 </html>
