@@ -1,6 +1,8 @@
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 .error
 {
@@ -12,6 +14,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow: hidden;
 }
 .auth-container {
   background-color: #ffffff;
@@ -44,4 +47,98 @@ body {
 .auth-text {
   text-align: center;
   margin-top: 15px;
+}
+
+
+.background {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.chat-card {
+  width: 380px;
+  height: 520px;
+  margin: auto;
+  margin-top: 50px;
+  backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.chat-header {
+  padding: 18px;
+  text-align: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.msg {
+  max-width: 75%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  animation: floatUp 0.3s ease;
+}
+
+.incoming {
+  background: rgba(255,255,255,0.7);
+  align-self: flex-start;
+}
+
+.outgoing {
+  background: #00f2fe;
+  color: #003;
+  align-self: flex-end;
+}
+
+.msg small {
+  display: block;
+  text-align: right;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+.chat-footer {
+  display: flex;
+  padding: 12px;
+  gap: 10px;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+}
+
+.chat-footer button {
+  padding: 0 18px;
+  border-radius: 12px;
+  border: none;
+  background: #00f2fe;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
