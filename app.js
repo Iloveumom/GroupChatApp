@@ -3,9 +3,10 @@ const express=require("express");
 const app=express();
 const db=require("./utils/db-connetion");
 const cors = require("cors");
-const userroute=require("./routes/userRoutes");
+const userroutes=require("./routes/userRoutes");
+const chatRoutes=require("./routes/chatRoutes");
 const path=require("path");
-require("./models/user");
+require("./models");
 
 
 app.use(express.json());            
@@ -16,7 +17,8 @@ app.use(cors()); // allow all origins
 app.use(express.static(path.join(__dirname, "./Frontend")));
 
 //Routes
-app.use("/user",userroute);
+app.use("/user",userroutes);
+app.use("/chat", chatRoutes);
 
 db.sync()
 .then((res)=>{
