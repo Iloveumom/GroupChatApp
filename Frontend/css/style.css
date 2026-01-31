@@ -81,6 +81,8 @@ body {
   flex: 1;
   padding: 15px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .msg {
@@ -141,4 +143,27 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+.chat-message {
+  max-width: 60%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin: 6px 0;
+  position: relative;
+}
+
+.chat-message-left {
+  background: #fff;
+  align-self: flex-start;
+}
+
+.chat-message-right {
+  background: #c6f0a6;
+  align-self: flex-end;
+}
+
+.chat-username {
+  font-size: 10px;
+  color: gray;
+  text-align: right;
 }

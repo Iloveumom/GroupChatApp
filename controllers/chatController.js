@@ -1,5 +1,5 @@
 const Chat = require("../models/chat");
-
+const User = require("../models/user");
 const sendMessage = async (req, res) => {
   const {message } = req.body;
   const UserId=req.user.id;
@@ -14,4 +14,26 @@ const sendMessage = async (req, res) => {
     message_id: result.id
   });
 };
-module.exports={sendMessage};
+const getMessages = async (req, res) => {
+  try {
+    const messages = await Chat.findAll({
+      order: [["createdAt", "ASC"]],
+      include: [
+        {
+          model: User,       // assuming Chat.belongsTo(User)
+          attributes: ["name"] // sirf name chahiye
+        }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: messages
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports={sendMessage,getMessages};

@@ -1,7 +1,8 @@
 const User = require("./user");
 const Chat = require("./chat");
 
-// Associations
+// Associations 
+
 User.hasMany(Chat);
 Chat.belongsTo(User);
 

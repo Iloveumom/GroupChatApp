@@ -5,6 +5,7 @@ const db=require("./utils/db-connetion");
 const cors = require("cors");
 const userroutes=require("./routes/userRoutes");
 const chatRoutes=require("./routes/chatRoutes");
+const authmeRoutes=require("./routes/authmeroutes");
 const path=require("path");
 require("./models");
 
@@ -19,6 +20,9 @@ app.use(express.static(path.join(__dirname, "./Frontend")));
 //Routes
 app.use("/user",userroutes);
 app.use("/chat", chatRoutes);
+
+//get The login use id
+app.use("/me",authmeRoutes);
 
 db.sync()
 .then((res)=>{
