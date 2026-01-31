@@ -13,8 +13,9 @@ const authenticate = async (req, res, next) => {
     }
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+   
     // User fetch
-    const user = await User.findByPk(decoded.SignupId);
+    const user = await User.findByPk(decoded.signupId);
     if (!user) {
       return res.status(401).json({
         success: false,
