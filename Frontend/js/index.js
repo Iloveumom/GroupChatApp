@@ -30,10 +30,7 @@ function send() {
   // UI me turant show karo
   renderMessage(msg);
 
-  //  WebSocket send karo
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(msg));
-  }
+  socket.emit("chat-message",msg);
 
   input.value = "";
 }
@@ -45,13 +42,18 @@ function send() {
 function renderMessage(msg) {
     const chat = document.getElementById("chatBody");
     const div = document.createElement("div");
-
+    console.log(msg.userId,loguserid);
     // login user left, others right
-    if (msg.userId === loguserid) div.className = "chat-message chat-message-left";
-    else div.className = "chat-message chat-message-right";
-
+    if (msg.userId === loguserid)
+      {
+         div.className = "chat-message chat-message-right";
+      }
+      else 
+        {
+          div.className = "chat-message chat-message-left";
+        }
     const time = new Date(msg.createdAt).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
-
+//alert(div.className);
     div.innerHTML = `
         <span>${msg.message}</span>
         <small>${time}</small>
@@ -107,22 +109,16 @@ async function getLoggedInUser() {
 }
 
 // =========================
-// WebSocket setup for live messages
+// WebSocket setup for live messages(getMessage)
 // =========================
 function initWebSocket() {
-  socket = new WebSocket("ws://localhost:4000"); // backend ws server
+   // backend socket io server
+  socket = io("http://localhost:4000");
 
-  socket.onopen = () => console.log("WebSocket connected");
-
- socket.onmessage = (event) => {
-    const msgData = JSON.parse(event.data);
-
-    // Skip messages sent by login user (already appended in send())
-    if (msgData.userId === loguserid) return;
-
-    renderMessage(msgData);
-};
-
-
-  socket.onclose = () => console.log("WebSocket disconnected");
+  socket.on("chat-message", (data) => 
+    {
+        if (data.userId === loguserid) return;
+      renderMessage(data);
+   });
+ 
 }
