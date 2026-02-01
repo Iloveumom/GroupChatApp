@@ -16,6 +16,8 @@ window.onload = async function () {
 // =========================
 // Send message function
 // =========================
+/*
+//this is for all user
 function send() {
   const input = document.getElementById("typemessage");
   if (!input.value.trim()) return;
@@ -35,7 +37,7 @@ function send() {
   input.value = "";
 }
 
-
+*/
 // =========================
 // Render message
 // =========================
@@ -119,11 +121,40 @@ function initWebSocket() {
       token:token
     }
   });
-
+/*
   socket.on("chat-message", (data) => 
     {
         if (data.userId === loguserid) return;
       renderMessage(data);
    });
- 
+ */
+ socket.on("new-message", (data) => 
+    {
+        if (data.userId === loguserid) return;
+      renderMessage(data);
+   });
 }
+
+//Implement pesonal chat 
+function send()
+{
+  const input = document.getElementById("typemessage");
+  
+  const message=input.value;
+   
+
+  // UI me turant show karo
+  renderMessage(message);
+
+  socket.emit("new-message",{message,roomName:window.roomname});
+
+  input.value = "";
+}
+document.getElementById("searchForm").addEventListener("submit", (e)=>{
+    e.preventDefault();
+    
+    let email=e.target.search.value;
+    window.roomname=email;
+    socket.emit("join-room",email);
+    alert("Room join",email);
+});

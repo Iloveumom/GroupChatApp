@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <title>Glass Chat UI</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <div class="background"></div>
 
+<!-- CHAT CARD -->
 <div class="chat-card">
-  <div class="chat-header">
-          Sharpner Chat
-  </div>
+  <div class="chat-header">Sharpner Chat</div>
 
   <div class="chat-body" id="chatBody">
     <div class="msg incoming">
@@ -27,7 +27,20 @@
     <button onclick="send()">➤</button>
   </div>
 </div>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<!-- LEFT FIXED ROOM PANEL -->
+<div class="left-room-panel">
+  <div class="room-header">
+   <form id="searchForm">
+  <input type="text" placeholder="Search room or email..." name="search" />
+</form>
+
+  </div>
+  <div class="room-list" id="roomList">
+    <!-- rooms dynamically added here -->
+  </div>
+</div>
+
 <script src="js/index.js"></script>
 </body>
 </html>

@@ -167,3 +167,62 @@ body {
   color: gray;
   text-align: right;
 }
+/* FIXED LEFT ROOM PANEL */
+.left-room-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+}
+
+/* HEADER */
+.left-room-panel .room-header {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.left-room-panel .room-header input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* LIST */
+.left-room-panel .room-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* SCROLLBAR */
+.left-room-panel .room-list::-webkit-scrollbar {
+  width: 6px;
+}
+.left-room-panel .room-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.4);
+  border-radius: 10px;
+}
+
+/* ITEM */
+.left-room-panel .room-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.1);
+  transition: 0.2s;
+}
+
+.left-room-panel .room-item:hover {
+  background: rgba(255,255,255,0.25);
+}
+

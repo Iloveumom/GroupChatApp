@@ -13,7 +13,7 @@ module.exports=(server)=>{
     });
     socketAuth(io);
     io.on("connection", (socket) => {
-        chatHandler(socket,io);
+        //chatHandler(socket,io);
         personalChatHandler(socket,io);
     });
     return io;
