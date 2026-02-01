@@ -30,15 +30,11 @@ loginForm.addEventListener("submit", (e) => {
     password: password
   })
   .then(response => {
-    //console.log(response.data.message);
-   // console.log(response.data.token);
-    //console.log(response.data.user.id);
-    
-   localStorage.setItem("token",response.data.token);
+ 
+    localStorage.setItem("token",response.data.token);
     const msg=document.getElementById("Msg");
     msg.innerText =response.data.message;
     msg.style="color:green";
-    //document.getElementById("signupForm").reset();
     alert("Login successs");
     window.location.href = "index.html";
   })

@@ -113,7 +113,12 @@ async function getLoggedInUser() {
 // =========================
 function initWebSocket() {
    // backend socket io server
-  socket = io("http://localhost:4000");
+  const token = localStorage.getItem("token");
+  socket = io("http://localhost:4000", {
+    auth: {
+      token:token
+    }
+  });
 
   socket.on("chat-message", (data) => 
     {

@@ -6,9 +6,10 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 
 require("./models");
-const { Chat } = require("./models");
+const { Chat, User } = require("./models");
 
 app.use(express.json());
 app.use(cors());
@@ -20,9 +21,41 @@ app.use("/me", require("./routes/authmeroutes"));
 
 const server = http.createServer(app);
 
+//todo: set cors
 const io = new Server(server, {
   cors: {
-    origin: "*"
+    origin:
+      process.env.NODE_ENV === "production"
+        ? false :"http://localhost:4000/" 
+  }
+});
+
+
+//todo: scoket middlewate auth
+io.use(async (socket, next) => {
+  try {
+
+    const token = socket.handshake.auth.token;
+
+    if (!token) return next(new Error("No token provided"));
+     // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+       
+        if (!decoded) {
+          return  next(new Error("Invalid token"));
+        }
+        // User fetch
+        const user = await User.findByPk(decoded.signupId);
+        if (!user) {
+
+         return next(new Error("User not Found"));
+        }
+        socket.user = user;
+        next();
+    
+  } catch (err) {
+    console.log(err);
+    next(new Error("Invalid token"));
   }
 });
 
