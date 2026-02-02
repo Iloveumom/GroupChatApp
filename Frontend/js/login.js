@@ -32,6 +32,7 @@ loginForm.addEventListener("submit", (e) => {
   .then(response => {
  
     localStorage.setItem("token",response.data.token);
+    localStorage.setItem("emailorphone",emailorphone);
     const msg=document.getElementById("Msg");
     msg.innerText =response.data.message;
     msg.style="color:green";

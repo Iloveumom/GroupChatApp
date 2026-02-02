@@ -38,6 +38,7 @@ function send() {
 }
 
 */
+
 // =========================
 // Render message
 // =========================
@@ -130,7 +131,8 @@ function initWebSocket() {
  */
  socket.on("new-message", (data) => 
     {
-        if (data.userId === loguserid) return;
+      console.log(data);
+        //if (data.userId === loguserid) return;
       renderMessage(data);
    });
 }
@@ -150,11 +152,58 @@ function send()
 
   input.value = "";
 }
-document.getElementById("searchForm").addEventListener("submit", (e)=>{
+
+let emails = [];
+
+// 1️⃣ Fetch all emails from backend when page loads
+axios.get('users/getAllEmails') // replace with your API
+    .then(res => {
+        emails = res.data; // assume it's an array of emails
+        renderEmailList(emails); // render left panel initially
+    })
+    .catch(err => console.error(err));
+
+// Elements
+const searchInput = document.querySelector('#searchForm input[name="search"]');
+const roomList = document.getElementById('roomList');
+
+//  Render email suggestions under search box (as a list)
+function renderEmailList(list) {
+    roomList.innerHTML = ''; // clear previous
+    list.forEach(email => {
+        const div = document.createElement('div');
+        div.textContent = email;
+        div.classList.add('room-item'); // you can style in CSS
+        div.style.cursor = 'pointer';
+        div.addEventListener('click', () => {
+            searchInput.value = email; // fill search box
+        });
+        roomList.appendChild(div);
+    });
+}
+
+//  Filter emails while typing
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    const filtered = emails.filter(email => email.toLowerCase().includes(query));
+    renderEmailList(filtered);
+});
+
+// Form submit with validation
+document.getElementById("searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    
-    let email=e.target.search.value;
-    window.roomname=email;
-    socket.emit("join-room",email);
-    alert("Room join",email);
+    const myEmail = localStorage.getItem("emailorphone");
+    const email = searchInput.value.trim();
+
+    // Validate email exists in backend list
+    if(!emails.includes(email)){
+        alert("Please select a valid email from the list!");
+        return;
+    }
+
+    //Join room
+    const roomName = [myEmail, email].sort().join('-');
+    window.roomname = roomName;
+    socket.emit("join-room", roomName);
+    alert("Room joined: " + roomName);
 });
