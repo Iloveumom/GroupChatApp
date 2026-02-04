@@ -10,6 +10,10 @@ const userRoute=require("./routes/userRoutes")
 const authmeRoute=require("./routes/authmeroutes")
 const groupRotute= require("./routes/groupRotutes")
 const mediaRoutes = require("./routes/mediaRoutes");
+
+require("./cron/ArchivedMessage");
+
+
 require("./models");
 
 app.use(express.json());

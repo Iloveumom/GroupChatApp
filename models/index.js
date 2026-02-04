@@ -2,6 +2,7 @@ const User = require("./User");
 const Conversation = require("./Conversation");
 const Message = require("./Message");
 const ConversationUsers = require("./ConversationUserss");
+const ArchivedMessage=require('./archivedMessage');
 User.belongsToMany(Conversation, {
   through: ConversationUsers,
   foreignKey: "userId",
