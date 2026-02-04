@@ -1,46 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Glass Chat UI</title>
+  <meta charset="UTF-8">
+  <title>Group Chat App</title>
+  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
 
-<div class="background"></div>
+  <div class="container">
+  
+    <div class="sidebar">
+      <h2>Users</h2>
+      <div id="userList"></div>
 
-<!-- CHAT CARD -->
-<div class="chat-card">
-  <div class="chat-header">Sharpner Chat</div>
+      <h2>Create Group</h2>
+      <input type="text" id="groupName" placeholder="Group Name">
+      <div id="groupUsers"></div>
+      <button onclick="createGroup()">Create Group</button>
 
-  <div class="chat-body" id="chatBody">
-    <div class="msg incoming">
-      <span>Hello! Welcome</span>
-      <small>09:58</small>
+      <h2>Groups</h2>
+      <div id="groupList"></div>
     </div>
+
+    <div class="chat-container">
+      <div class="chat-header">
+       
+           <div id="topBar">
+             <h3 id="chatTitle">Select a chat</h3>
+  <div id="userInfo">
+    <h4>Welcome </h4>
+    <span id="userName"></span>
+    <span id="userEmail"></span>
+     <button id="logoutBtn" onclick="logout()">Logout</button>
   </div>
 
-  <div class="chat-footer">
-    <input id="typemessage" type="text" placeholder="Type something cool..." />
-    <button onclick="send()">➤</button>
-  </div>
-</div>
+ 
+ </div>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+     
+      <div class="chat-input">
+              <input type="file" id="fileInput" style="display:none" />
+              <button onclick="openFile()">📎</button>
+              <input type="text" id="msgInput" placeholder="Type a message" onkeydown="handleEnter(event)">
+              <button onclick="sendMessage()">Send</button>
+      </div>
 
-<!-- LEFT FIXED ROOM PANEL -->
-<div class="left-room-panel">
-  <div class="room-header">
-   <form id="searchForm">
-  <input type="text" placeholder="Search room or email..." name="search" />
-</form>
+    </div>
 
   </div>
-  <div class="room-list" id="roomList">
-    <!-- rooms dynamically added here -->
-  </div>
-</div>
+ 
 
-<script src="js/index.js"></script>
+
+  <script src="js/index.js"></script>
 </body>
 </html>

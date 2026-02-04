@@ -1,209 +1,295 @@
-let loguserid = null;
-let socket = null;
+let socket;
+let userId;
+let currentRoomId = null;
+let currentGroupAdminId = null;
 
-window.onload = async function () {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "login.html";
-    return;
+let users = [];
+let groups = [];
+window.onload = async () => {
+  try {
+    socket = io("http://localhost:4000", {
+      auth: { token: localStorage.getItem("token") }
+    });
+
+    const me = await axios.get("http://localhost:4000/me/details", {
+      headers: { Authorization: localStorage.getItem("token") }
+    });
+    
+    userId = me.data.userId;
+    document.getElementById("userName").innerText = me.data.name || "User";
+    document.getElementById("userEmail").innerText = me.data.email;
+
+    const res = await axios.get("http://localhost:4000/user/getAllUsers", {
+      headers: { Authorization: localStorage.getItem("token") }
+    });
+    users = res.data;
+    renderUsers();
+
+    /*OLD PERSONAL CHAT HISTORY */
+    socket.on("personal-chat-history", (data) => {
+      currentRoomId = data.conversationId;
+      clearChat();
+      data.messages.forEach(msg => {
+        renderMessage(msg);
+      });
+    });
+   /*OLD Group CHAT HISTORY */
+   socket.on("group-chat-history", (data) => 
+    {
+        currentRoomId = data.conversationId;
+        clearChat();
+        data.messages.forEach(renderMessage);
+    });
+
+    /* NEW MESSAGES */
+   /* ---------------- NEW MESSAGES ---------------- */
+socket.on("new-personal-message", (msg) => {
+  // sirf tab render karo jab personal chat me ho aur currentRoomId match ho
+  if (currentGroupAdminId === null && msg.conversationId === currentRoomId) {
+    renderMessage(msg);
   }
+});
 
-  await getLoggedInUser();
-  await getMessages();
-  initWebSocket();
+socket.on("new-group-message", (msg) => {
+  // sirf tab render karo jab group chat me ho aur currentRoomId match ho
+  if (currentGroupAdminId !== null && msg.conversationId === currentRoomId) {
+    renderMessage(msg);
+  }
+});
+
+
+    socket.on("group-created", g => {
+      groups.push(g);
+      renderGroups();
+    });
+
+    await loadMyGroups( );
+
+  } catch (err) {
+    console.error(err);
+    alert("Init failed");
+  }
 };
+//--------Load Group front backend----//
+async function loadMyGroups() {
+  try {
+    const res = await axios.get("http://localhost:4000/group/getMyGroups", {
+      headers: {
+        Authorization: localStorage.getItem("token")
+      }
+    });
 
-// =========================
-// Send message function
-// =========================
-/*
-//this is for all user
-function send() {
-  const input = document.getElementById("typemessage");
-  if (!input.value.trim()) return;
+    groups = res.data;
+    renderGroups();
 
-  const msg = {
-    message: input.value,
-    userId: loguserid,
-    userName: "You",
-    createdAt: new Date()
-  };
+  } catch (err) {
+    console.error("Load group failed", err);
+  }
+}
 
-  // UI me turant show karo
-  renderMessage(msg);
 
-  socket.emit("chat-message",msg);
+// ---------------- USERS ---------------- 
+
+function renderUsers() {
+  const userBox = document.getElementById("userList");
+  const groupBox = document.getElementById("groupUsers");
+
+  userBox.innerHTML = "";
+  groupBox.innerHTML = "";
+
+  users.forEach(u => {
+    if (u.id === userId) return;
+
+    const div = document.createElement("div");
+    div.className = "room-item";
+    div.innerText = u.email;
+    div.onclick = () => startPersonalChat(u);
+    userBox.appendChild(div);
+
+    const c = document.createElement("div");
+    c.innerHTML = `<input type="checkbox" value="${u.id}"> ${u.email}`;
+    groupBox.appendChild(c);
+  });
+}
+
+/* ---------------- PERSONAL CHAT ---------------- */
+
+function startPersonalChat(user) {
+  socket.emit("join-personal", {
+    receiverId: user.id
+  });
+
+  clearChat();
+  setTitle(user.email);
+  currentGroupAdminId = null;
+}
+
+/* ---------------- GROUP ---------------- */
+
+function createGroup() {
+  const name = document.getElementById("groupName").value.trim();
+  if (!name) return alert("Group name required");
+
+  const checked = document.querySelectorAll("#groupUsers input:checked");
+  if (!checked.length) return alert("Select members");
+
+  const members = Array.from(checked).map(c => c.value);
+
+  socket.emit("create-group", { name, members });
+
+  document.getElementById("groupName").value = "";
+  checked.forEach(c => (c.checked = false));
+}
+
+function renderGroups() {
+  const box = document.getElementById("groupList");
+  box.innerHTML = "";
+
+  groups.forEach(g => {
+    const div = document.createElement("div");
+    div.className = "room-item";
+    div.innerHTML = `<span>${g.name}</span>`;
+
+    if (g.adminId === userId) {
+      div.innerHTML += ` <button class="admin-btn">Admin</button>`;
+    }
+
+    div.onclick = () => joinGroup(g);
+    box.appendChild(div);
+  });
+}
+
+function joinGroup(group) {
+  currentRoomId = group.id;
+  currentGroupAdminId = group.adminId;
+
+  socket.emit("join-group", { groupId: group.id });
+
+  clearChat();
+  setTitle(group.name + " (Group)");
+}
+
+/* ---------------- MESSAGE ---------------- */
+
+function sendMessage() {
+  const input = document.getElementById("msgInput");
+  if (!input.value || !currentRoomId) return;
+
+  if (currentGroupAdminId !== null) {
+    socket.emit("group-message", {
+      conversationId: currentRoomId,
+      message: input.value
+    });
+  } else {
+    socket.emit("personal-message", {
+      roomId: currentRoomId,
+      message: input.value
+    });
+  }
 
   input.value = "";
 }
 
-*/
-
-// =========================
-// Render message
-// =========================
 function renderMessage(msg) {
-    const chat = document.getElementById("chatBody");
-    const div = document.createElement("div");
-    console.log(msg.userId,loguserid);
-    // login user left, others right
-    if (msg.userId === loguserid)
-      {
-         div.className = "chat-message chat-message-right";
-      }
-      else 
-        {
-          div.className = "chat-message chat-message-left";
-        }
-    const time = new Date(msg.createdAt).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
-//alert(div.className);
-    div.innerHTML = `
-        <span>${msg.message}</span>
-        <small>${time}</small>
-        <p class="chat-username">${msg.User?.name || msg.userName || "User"}</p>
-    `;
+  const chat = document.getElementById("chatBody");
 
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+  const div = document.createElement("div");
+  div.className = "msg " + (msg.senderId === userId ? "right" : "left");
+
+  // MEDIA MESSAGE
+  if (msg.mediaUrl) {
+
+    // IMAGE
+    if (msg.fileType && msg.fileType.startsWith("image")) {
+      div.innerHTML = `
+        <b>${msg.userName}</b><br>
+        <img src="${msg.mediaUrl}" class="chat-img" />
+      `;
+    }
+
+    // VIDEO
+    else if (msg.fileType && msg.fileType.startsWith("video")) {
+      div.innerHTML = `
+        <b>${msg.userName}</b><br>
+        <video controls class="chat-video">
+          <source src="${msg.mediaUrl}" type="${msg.fileType}">
+        </video>
+      `;
+    }
+
+    // OTHER FILE
+    else {
+      div.innerHTML = `
+        <b>${msg.userName}</b><br>
+        <a href="${msg.mediaUrl}" target="_blank">📎 Download file</a>
+      `;
+    }
+
+  } 
+  // TEXT MESSAGE
+  else {
+    div.innerText = `${msg.userName}: ${msg.message}`;
+  }
+
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
+/* ---------------- UTILS ---------------- */
 
-// =========================
-// Load old messages from REST
-// =========================
-async function getMessages() {
-  const chat = document.getElementById("chatBody");
-  const token = localStorage.getItem("token");
+function clearChat() {
+  document.getElementById("chatBody").innerHTML = "";
+}
+
+function setTitle(text) {
+  document.getElementById("chatTitle").innerText = text;
+}
+
+function handleEnter(e) {
+  if (e.key === "Enter") sendMessage();
+}
+function logout() {
+  localStorage.removeItem("token");
+
+  if (socket) {
+    socket.disconnect();
+  }
+
+  window.location.href = "login.html";
+}
+
+//Multimedia code start 
+function openFile() {
+  document.getElementById("fileInput").click();
+}
+document.getElementById("fileInput").addEventListener("change", async function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("conversationId", currentRoomId);
 
   try {
-    const res = await axios.get("http://localhost:4000/chat/messages", {
-      headers: { Authorization: token }
+    const res = await axios.post(
+      "http://localhost:4000/media/upload",
+      formData,
+      {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+          "Content-Type": "multipart/form-data"
+        }
+      }
+    );
+    
+    // backend se S3 URL aayega
+    socket.emit("media-message", {
+      conversationId: currentRoomId,
+      mediaUrl: res.data.url,
+      fileType: file.type
     });
 
-    chat.innerHTML = "";
-
-   res.data.data.forEach(msg => {
-  // Map REST UserId -> userId for consistency
-  const m = {
-    message: msg.message,
-    userId: msg.UserId,
-    User: msg.User,
-    createdAt: msg.createdAt
-  };
-  renderMessage(m);
-});
-
-
-  } catch (error) {
-    console.error("Failed to load messages", error);
+  } catch (err) {
+    console.error("Upload failed", err);
   }
-}
-
-// =========================
-// Get logged-in user ID
-// =========================
-async function getLoggedInUser() {
-  const token = localStorage.getItem("token");
-  const res = await axios.get("http://localhost:4000/me/details", {
-    headers: { Authorization: token }
-  });
-
-  loguserid = res.data.userId;
-}
-
-// =========================
-// WebSocket setup for live messages(getMessage)
-// =========================
-function initWebSocket() {
-   // backend socket io server
-  const token = localStorage.getItem("token");
-  socket = io("http://localhost:4000", {
-    auth: {
-      token:token
-    }
-  });
-/*
-  socket.on("chat-message", (data) => 
-    {
-        if (data.userId === loguserid) return;
-      renderMessage(data);
-   });
- */
- socket.on("new-message", (data) => 
-    {
-      console.log(data);
-        //if (data.userId === loguserid) return;
-      renderMessage(data);
-   });
-}
-
-//Implement pesonal chat 
-function send()
-{
-  const input = document.getElementById("typemessage");
-  
-  const message=input.value;
-   
-
-  // UI me turant show karo
-  renderMessage(message);
-
-  socket.emit("new-message",{message,roomName:window.roomname});
-
-  input.value = "";
-}
-
-let emails = [];
-
-// 1️⃣ Fetch all emails from backend when page loads
-axios.get('users/getAllEmails') // replace with your API
-    .then(res => {
-        emails = res.data; // assume it's an array of emails
-        renderEmailList(emails); // render left panel initially
-    })
-    .catch(err => console.error(err));
-
-// Elements
-const searchInput = document.querySelector('#searchForm input[name="search"]');
-const roomList = document.getElementById('roomList');
-
-//  Render email suggestions under search box (as a list)
-function renderEmailList(list) {
-    roomList.innerHTML = ''; // clear previous
-    list.forEach(email => {
-        const div = document.createElement('div');
-        div.textContent = email;
-        div.classList.add('room-item'); // you can style in CSS
-        div.style.cursor = 'pointer';
-        div.addEventListener('click', () => {
-            searchInput.value = email; // fill search box
-        });
-        roomList.appendChild(div);
-    });
-}
-
-//  Filter emails while typing
-searchInput.addEventListener('input', () => {
-    const query = searchInput.value.toLowerCase();
-    const filtered = emails.filter(email => email.toLowerCase().includes(query));
-    renderEmailList(filtered);
-});
-
-// Form submit with validation
-document.getElementById("searchForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const myEmail = localStorage.getItem("emailorphone");
-    const email = searchInput.value.trim();
-
-    // Validate email exists in backend list
-    if(!emails.includes(email)){
-        alert("Please select a valid email from the list!");
-        return;
-    }
-
-    //Join room
-    const roomName = [myEmail, email].sort().join('-');
-    window.roomname = roomName;
-    socket.emit("join-room", roomName);
-    alert("Room joined: " + roomName);
 });

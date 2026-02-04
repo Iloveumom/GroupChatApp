@@ -1,12 +1,29 @@
-const User = require("./user");
-const Chat = require("./chat");
+const User = require("./User");
+const Conversation = require("./Conversation");
+const Message = require("./Message");
+const ConversationUsers = require("./ConversationUserss");
+User.belongsToMany(Conversation, {
+  through: ConversationUsers,
+  foreignKey: "userId",
+  otherKey: "conversationId",
+});
 
-// Associations 
+Conversation.belongsToMany(User, {
+  through: ConversationUsers,
+  foreignKey: "conversationId",
+  otherKey: "userId",
+});
 
-User.hasMany(Chat);
-Chat.belongsTo(User);
+Conversation.hasMany(Message, { foreignKey: "conversationId" });
+Message.belongsTo(Conversation, { foreignKey: "conversationId" });
+
+User.hasMany(Message, { foreignKey: "senderId" });
+Message.belongsTo(User, { foreignKey: "senderId" });
+
 
 module.exports = {
   User,
-  Chat,
+  Conversation,
+  Message,
+  ConversationUsers,
 };

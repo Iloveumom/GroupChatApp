@@ -1,4 +1,4 @@
-const User=require('../models/user');
+const User=require('../models/User');
 const bcrypt=require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
@@ -85,7 +85,31 @@ const generateToken = (id, email, phone) => {
     process.env.JWT_SECRET
   );
 };
+// Get all users
+const getAllUsers = async (req, res) => {
+  try {
+  
 
+    const users = await User.findAll({
+      
+      }
+    );
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+const findUserById=async (userId)=>{
 
-
-module.exports = { checkLogindetail ,addSignupdetail};
+  try { 
+      const user = await User.findByPk(userId);
+      return user;
+    }
+    catch(err)
+    {
+      console.log(err);
+      res.status(500).json({ error: "user not Found"});
+    }
+}
+module.exports = { checkLogindetail ,addSignupdetail,getAllUsers,findUserById};
