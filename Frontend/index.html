@@ -40,14 +40,35 @@
  </div>
       </div>
       <div class="chat-body" id="chatBody"></div>
-     
-      <div class="chat-input">
-              <input type="file" id="fileInput" style="display:none" />
-              <button onclick="openFile()">📎</button>
-              <input type="text" id="msgInput" placeholder="Type a message" onkeydown="handleEnter(event)">
-              <button onclick="sendMessage()">Send</button>
-      </div>
+     <div id="aiSuggestions" class="ai-suggestions" style="display:none;"></div>
+        <div id="smartReplies" class="smart-replies" style="display:none;"></div>
+               <div class="chat-input">
 
+ <input type="file" id="fileInput" style="display:none" />
+
+  <button type="button" class="attach-btn" onclick="openFile()">
+    📎
+  </button>
+
+  <input
+    type="text"
+    id="msgInput"
+    placeholder="Type a message"
+    onkeydown="handleEnter(event)"
+    oninput="handleTyping()"
+  >
+
+  <button onclick="sendMessage()">Send</button>
+
+</div>
+
+         
+
+        
+
+          </div>
+      
+      
     </div>
 
   </div>

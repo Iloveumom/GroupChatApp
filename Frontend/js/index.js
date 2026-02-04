@@ -293,3 +293,164 @@ document.getElementById("fileInput").addEventListener("change", async function (
     console.error("Upload failed", err);
   }
 });
+//Ai implementation 
+const AI_BASE_URL = "http://localhost:4000/ai";
+
+const msgInput = document.getElementById("msgInput");
+const aiBox = document.getElementById("aiSuggestions");
+const replyBox = document.getElementById("smartReplies");
+
+let aiTimer = null;
+let lastTypedText = "";
+let aiAbortController = null;
+
+/* ---------- PREDICTIVE TYPING ---------- */
+function handleTyping() {
+  if (!msgInput || !aiBox) return;
+
+  const text = msgInput.value.trim();
+
+  //  minimum typing
+  if (text.length < 2) {
+    aiBox.style.display = "none";
+    lastTypedText = "";
+    return;
+  }
+
+  // same text → no API call
+  if (text === lastTypedText) return;
+  lastTypedText = text;
+
+  clearTimeout(aiTimer);
+
+  aiTimer = setTimeout(async () => {
+    try {
+      //  cancel previous request
+      if (aiAbortController) aiAbortController.abort();
+      aiAbortController = new AbortController();
+
+      const res = await fetch(`${AI_BASE_URL}/predict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: localStorage.getItem("token")
+        },
+        signal: aiAbortController.signal,
+        body: JSON.stringify({
+          text,
+          tone: "casual"
+        })
+      });
+
+      const data = await res.json();
+      renderTypingSuggestions(
+        data.data || data.suggestions || []
+      );
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("AI typing error", err);
+      }
+      aiBox.style.display = "none";
+    }
+  }, 600); // debounce
+}
+
+/* ---------- RENDER TYPING SUGGESTIONS ---------- */
+function renderTypingSuggestions(list) {
+  if (!aiBox) return;
+
+  aiBox.innerHTML = "";
+
+  if (!Array.isArray(list) || list.length === 0) {
+    aiBox.style.display = "none";
+    return;
+  }
+
+  list.slice(0, 3).forEach(word => {
+    const span = document.createElement("span");
+    span.className = "ai-suggestion";
+    span.innerText = word;
+
+    span.onclick = () => {
+      msgInput.value += " " + word;
+      aiBox.style.display = "none";
+      msgInput.focus();
+      lastTypedText = msgInput.value.trim();
+    };
+
+    aiBox.appendChild(span);
+  });
+
+  aiBox.style.display = "flex";
+}
+
+/* ---------- SMART REPLIES ---------- */
+async function loadSmartReplies(messageText) {
+  if (!replyBox || !messageText) return;
+
+  try {
+    const res = await fetch(`${AI_BASE_URL}/reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        message: messageText,
+        tone: "casual"
+      })
+    });
+
+    const data = await res.json();
+    renderSmartReplies(
+      data.data || data.replies || []
+    );
+  } catch (err) {
+    console.error("AI reply error", err);
+    replyBox.style.display = "none";
+  }
+}
+
+/* ---------- RENDER SMART REPLIES ---------- */
+function renderSmartReplies(replies) {
+  if (!replyBox) return;
+
+  replyBox.innerHTML = "";
+
+  if (!Array.isArray(replies) || replies.length === 0) {
+    replyBox.style.display = "none";
+    return;
+  }
+
+  replies.slice(0, 3).forEach(text => {
+    const btn = document.createElement("button");
+    btn.className = "reply-btn";
+    btn.innerText = text;
+
+    btn.onclick = () => {
+      msgInput.value = text;
+      sendMessage();
+      replyBox.style.display = "none";
+    };
+
+    replyBox.appendChild(btn);
+  });
+
+  replyBox.style.display = "flex";
+}
+
+/* ---------- SMART REPLY AUTO LOAD ---------- */
+const _renderMessage = renderMessage;
+
+renderMessage = function (msg) {
+  _renderMessage(msg);
+
+  if (
+    msg &&
+    msg.senderId !== userId &&
+    msg.message &&
+    msg.message.length > 1
+  ) {
+    loadSmartReplies(msg.message);
+  }
+};

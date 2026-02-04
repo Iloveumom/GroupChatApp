@@ -10,10 +10,8 @@ const userRoute=require("./routes/userRoutes")
 const authmeRoute=require("./routes/authmeroutes")
 const groupRotute= require("./routes/groupRotutes")
 const mediaRoutes = require("./routes/mediaRoutes");
-
+const aiRoutes = require("./routes/aiRoutes");
 require("./cron/ArchivedMessage");
-
-
 require("./models");
 
 app.use(express.json());
@@ -24,7 +22,7 @@ app.use("/user",userRoute);
 app.use("/me",authmeRoute );
 app.use("/group",groupRotute);
 app.use("/media", mediaRoutes);
-
+app.use("/ai", aiRoutes);
 
 const server = http.createServer(app);
 
